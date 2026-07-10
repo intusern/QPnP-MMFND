@@ -1,7 +1,9 @@
+# -*-codeing = utf-8 -*-
+# Quantum-inspired Multimodal Multi-domain Fake News Detection
 import os
 from utils.clip_dataloader import bert_data as weibo_data
 from utils.weibo21_clip_dataloader import bert_data as weibo21_data
-from model.ganshe_enhance2 import Trainer as ganshe_enhance2Trainer
+from model.xx import Trainer as xxTrainer
 
 class Run():
     def __init__(self,
@@ -95,8 +97,8 @@ class Run():
         train_loader, val_loader, test_loader = self.get_dataloader(self.dataset)
 
 
-        if self.model_name == 'ganshe_enhance2':
-            trainer = ganshe_enhance2Trainer(emb_dim=self.emb_dim, mlp_dims=self.mlp_dims, bert=self.bert,
+        if self.model_name == 'xx':
+            trainer = xxTrainer(emb_dim=self.emb_dim, mlp_dims=self.mlp_dims, bert=self.bert,
                                     use_cuda=self.use_cuda, lr=self.lr, train_loader=train_loader, dropout=self.dropout,
                                     weight_decay=self.weight_decay, val_loader=val_loader, test_loader=test_loader,
                                     category_dict=self.category_dict, early_stop=self.early_stop, epoches=self.epoch,

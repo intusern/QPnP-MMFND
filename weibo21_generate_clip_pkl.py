@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Quantum-inspired Multimodal Multi-domain Fake News Detection
 """
 为Weibo_21数据集生成CLIP特征PKL缓存文件
 生成: train_clip_loader.pkl, val_clip_loader.pkl, test_clip_loader.pkl

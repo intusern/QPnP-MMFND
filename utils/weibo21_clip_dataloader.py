@@ -1,8 +1,5 @@
 # -*-codeing = utf-8 -*-
-# @Time : 2023-12-1122:56
-# @Author : 童宇
-# @File : dataloader.py
-# @software :
+# Quantum-inspired Multimodal Multi-domain Fake News Detection
 import pickle
 import cn_clip.clip as clip
 from cn_clip.clip import load_from_name, available_models

@@ -1,18 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-FineFake 数据加载器
-适配 ganshe_enhance24 模型的输入格式（与 clip_dataloader 输出一致）
-
-DataLoader 输出 7 个 tensor：
-  0: token_ids  (BERT 分词)
-  1: masks      (注意力掩码)
-  2: label      (二分类标签)
-  3: category   (话题/领域索引)
-  4: image      (MAE 图像 tensor)
-  5: clip_image (CLIP 图像 tensor)
-  6: clip_text  (CLIP 分词)
-"""
-
 import pickle
 import cn_clip.clip as clip
 from torch.utils.data import TensorDataset, DataLoader

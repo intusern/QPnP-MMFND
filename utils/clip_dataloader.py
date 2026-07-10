@@ -1,8 +1,5 @@
-# -*-coding = utf-8 -*-
-# @Time : 2023-12-11 22:56
-# @Author : 童宇
-# @File : clip_dataloader.py
-# @Software :
+# -*-codeing = utf-8 -*-
+# Quantum-inspired Multimodal Multi-domain Fake News Detection
 import pickle
 import cn_clip.clip as clip
 from cn_clip.clip import load_from_name, available_models
@@ -80,13 +77,6 @@ def df_filter(df_data):
 
 
 def word2input(texts, vocab_file, max_len):
-    """
-    文本分词处理，修复nan值、空值问题
-    :param texts: 文本列表（可能含nan/空值）
-    :param vocab_file: 分词器词典文件路径
-    :param max_len: 最大序列长度
-    :return: token_ids, masks (torch.tensor)
-    """
     # 加载分词器
     try:
         tokenizer = BertTokenizer(vocab_file=vocab_file)
@@ -157,15 +147,7 @@ class bert_data():
             raise ValueError("category_dict必须是非空字典")
 
     def load_data(self, path, imagepath, clipimagepath, shuffle, text_only=False):
-        """
-        加载数据并构建DataLoader
-        :param path: 文本数据路径（csv/xlsx）
-        :param imagepath: 图片pkl文件路径
-        :param clipimagepath: CLIP图片特征pkl路径
-        :param shuffle: 是否打乱数据
-        :param text_only: 是否仅使用文本数据
-        :return: DataLoader
-        """
+
         # ========== 1. 加载并清洗文本数据 ==========
         # 读取数据
         if path.endswith('.xls') or path.endswith('.xlsx'):
@@ -355,180 +337,3 @@ class bert_data():
         )
 
         return dataloader
-
-# # -*-codeing = utf-8 -*-
-# # @Time : 2023-12-1122:56
-# # @Author : 童宇
-# # @File : dataloader.py
-# # @software :
-# import pickle
-# import cn_clip.clip as clip
-# from cn_clip.clip import load_from_name, available_models
-# from torch.utils.data import TensorDataset, DataLoader
-# from transformers import BertTokenizer
-# import torch
-# import pandas as pd
-# from torchvision import datasets, models, transforms
-# import os
-# import numpy as np
-# from PIL import Image
-#
-# def read_image():
-#     image_list = {}
-#     file_list = ['data/nonrumor_images/', 'data/rumor_images/']
-#     for path in file_list:
-#         data_transforms = transforms.Compose([
-#             transforms.Resize(256),
-#             transforms.CenterCrop(224),
-#             transforms.ToTensor(),
-#             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-#             ])
-#
-#         for i, filename in enumerate(os.listdir(path)):  # assuming gif
-#
-#             # print(filename)
-#             try:
-#                 im = Image.open(path + filename).convert('RGB')
-#                 im = data_transforms(im)
-#                 #im = 1
-#                 image_list[filename.split('/')[-1].split(".")[0].lower()] = im
-#             except:
-#                 print("wrong"+filename)
-#     #print("image length " + str(len(image_list)))
-#     #print("image names are " + str(image_list.keys()))
-#     return image_list
-#
-# def _init_fn(worker_id):
-#     np.random.seed(2024)
-#
-# def read_pkl(path):
-#     with open(path,"rb")as f:
-#         t = pickle.load(f)
-#     return t
-# def df_filter(df_data):
-#     df_data = df_data[df_data['category'] != '无法确定']
-#     return df_data
-#
-# def word2input(texts,vocab_file,max_len):
-#     # 尝试从本地加载，如果失败则从Hugging Face自动下载
-#     try:
-#         tokenizer = BertTokenizer(vocab_file=vocab_file)
-#     except (ValueError, FileNotFoundError):
-#         print("本地vocab.txt未找到，从Hugging Face自动下载中文BERT模型...")
-#
-#         # 清除可能导致问题的环境变量
-#         import os
-#         if 'HF_ENDPOINT' in os.environ:
-#             original_endpoint = os.environ['HF_ENDPOINT']
-#             del os.environ['HF_ENDPOINT']
-#             print(f"⚠️  已临时清除HF_ENDPOINT设置: {original_endpoint}")
-#             print("   直接从Hugging Face官方下载...")
-#
-#         try:
-#             tokenizer = BertTokenizer.from_pretrained('hfl/chinese-roberta-wwm-ext')
-#             print("✓ 模型下载完成")
-#         except Exception as e:
-#             print(f"✗ 下载失败: {e}")
-#             print("\n解决方案：")
-#             print("1. 检查网络连接")
-#             print("2. 清除HF_ENDPOINT环境变量")
-#             print("3. 或手动下载模型文件")
-#             raise
-#
-#     token_ids =[]
-#     for i,text in enumerate(texts):
-#         token_ids.append(tokenizer.encode(text, max_length=max_len, add_special_tokens=True, padding='max_length',
-#                              truncation=True))
-#     token_ids = torch.tensor(token_ids)
-#     masks = torch.zeros(token_ids.size())
-#     for i,token in enumerate(token_ids):
-#         masks[i] = (token != 0)
-#     return token_ids,masks
-#
-# class bert_data():
-#     def __init__(self,max_len, batch_size, vocab_file, category_dict, num_workers=2):
-#         self.max_len = max_len
-#         self.batch_size = batch_size
-#         self.num_workers = num_workers
-#         self.vocab_file = vocab_file
-#         self.category_dict = category_dict
-#
-#     def load_data(self,path,imagepath,clipimagepath,shuffle,text_only = False):
-#         # 根据文件扩展名选择读取方法
-#         if path.endswith('.xls') or path.endswith('.xlsx'):
-#             self.data = pd.read_excel(path)
-#         else:
-#             self.data = pd.read_csv(path,encoding='utf-8')
-#         device = "cuda" if torch.cuda.is_available() else "cpu"
-#         clipmodel, _ = load_from_name("ViT-B-16", device=device, download_root='./')
-#         content = self.data['content'].astype('object').to_numpy()
-#         label = torch.tensor(self.data['label'].astype('object').astype(int).to_numpy())
-#         category = torch.tensor(self.data['category'].astype('object').apply(lambda c: self.category_dict[c]).to_numpy())
-#         token_ids, masks = word2input(content,self.vocab_file,self.max_len)
-#         ordered_image = pickle.load(open(imagepath,'rb'))
-#         clip_image = pickle.load(open(clipimagepath, 'rb'))
-#
-#         # CLIP tokenize - 兼容不同版本
-#         try:
-#             # 尝试新版本的truncate参数
-#             clip_text = clip.tokenize(content, truncate=True)
-#         except TypeError:
-#             # 旧版本不支持truncate，手动截断文本
-#             print("⚠️  检测到旧版本CLIP，使用兼容模式...")
-#             # CLIP默认最大长度是77，手动截断长文本
-#             truncated_content = [text[:200] if len(text) > 200 else text for text in content]
-#             clip_text = clip.tokenize(truncated_content)
-#
-#         # 调试信息：检查所有tensor的大小
-#         print(f"数据大小检查:")
-#         print(f"  token_ids: {token_ids.shape}")
-#         print(f"  masks: {masks.shape}")
-#         print(f"  label: {label.shape}")
-#         print(f"  category: {category.shape}")
-#         print(f"  ordered_image: {ordered_image.shape}")
-#         print(f"  clip_image: {clip_image.shape}")
-#         print(f"  clip_text: {clip_text.shape}")
-#
-#         # 确保所有tensor的第一维大小相同
-#         expected_size = token_ids.size(0)
-#         if not all([
-#             masks.size(0) == expected_size,
-#             label.size(0) == expected_size,
-#             category.size(0) == expected_size,
-#             ordered_image.size(0) == expected_size,
-#             clip_image.size(0) == expected_size,
-#             clip_text.size(0) == expected_size
-#         ]):
-#             print("\n⚠️  错误：tensor大小不匹配！")
-#             print(f"CSV文件记录数: {len(self.data)}")
-#             print(f"预期样本数: {expected_size}")
-#
-#             # 找出大小不匹配的tensor
-#             if ordered_image.size(0) != expected_size:
-#                 print(f"  ✗ ordered_image 大小不匹配: {ordered_image.size(0)} vs {expected_size}")
-#             if clip_image.size(0) != expected_size:
-#                 print(f"  ✗ clip_image 大小不匹配: {clip_image.size(0)} vs {expected_size}")
-#
-#             raise ValueError(f"数据大小不匹配。请检查pickle文件是否与CSV文件对应。")
-#
-#         datasets =TensorDataset(token_ids,
-#                                 masks,
-#                                 label,
-#                                 category,
-#                                 ordered_image,
-#                                 clip_image,
-#                                 clip_text
-#         )
-#         # Windows或CPU运行时，pin_memory应该为False
-#         # torch已在文件顶部导入，不需要重复导入
-#         use_pin_memory = torch.cuda.is_available() and self.num_workers > 0
-#
-#         dataloader = DataLoader(
-#             dataset = datasets,
-#             batch_size = self.batch_size,
-#             num_workers = self.num_workers,
-#             pin_memory = use_pin_memory,
-#             shuffle = shuffle,
-#             worker_init_fn = _init_fn if self.num_workers > 0 else None
-#         )
-#         return dataloader

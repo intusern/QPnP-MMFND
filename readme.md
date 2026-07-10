@@ -1,110 +1,140 @@
-# QMMFND
+# QPnP-MMFND: Quantum-inspired Plug-and-Play Framework for Multimodal Multi-domain Fake News Detection
 
-This is an official implementation for QMMFND (Quantum-inspired Multi-Modal Multi-Domain Fake News Detection). The project integrates quantum computing principles with multi-modal deep learning techniques to accurately detect fake news from multiple domains. If you like this repo, don't forget to give a star!
+QPnP-MMFND is a quantum-inspired plug-and-play framework for multimodal multi-domain fake news detection. The core method in the paper contains two complementary modules:
+
+- Quantum Ambiguity Modeling (QAM): encodes textual and visual features as quantum states to capture cross-domain uncertainty and multimodal ambiguity.
+- Quantum-inspired Interference Fusion (QIF): uses interference-inspired formulations and phase differences to model fine-grained cross-modal interactions.
+
+This repository provides the implementation, preprocessing scripts, and training entry points for the paper.
+
 ## Requirements
-You can run `pip install -r requirements.txt` to deploy the environment.
+
+Install the environment with:
+
+```bash
+pip install -r requirements.txt
+```
+
+The project uses PyTorch, Transformers, Chinese-CLIP, and pretrained Roberta/MAE checkpoints.
 
 ## Directory Structure
 
-```
-QMMFND/
-├── CNN_architectures/          # CNN model architectures
-│   ├── fp16_util.py
-│   ├── lenet5_pytorch.py
-│   ├── pytorch_resnet.py
-│   ├── pytorch_vgg_implementation.py
-│   ├── pytorch_efficientnet.py
-│   ├── pytorch_inceptionet.py
-│   ├── nn.py
-│   └── unet.py
-├── model/                       # Core model implementations
-│   ├── QMMFND.py               # Main model
-│   ├── bert.py                 # BERT-related modules
-│   ├── entangle.py             # Quantum entanglement alignment
-│   ├── pivot.py                # Keypoint modules
-│   ├── layers.py               # Custom layers
-│   ├── wavefunction_quantum.py  # Wave function quantum encoder
-│   ├── clip_quantum_encoder.py  # CLIP quantum fusion
-│   └── bert_mae_mixed_state_encoder.py  # BERT/MAE mixed-state encoder
-├── util/                        # Utility functions
-│   ├── crop.py
-│   ├── datasets.py
-│   ├── lars.py
-│   ├── lr_decay.py
-│   ├── lr_sched.py
-│   ├── misc.py
-│   └── pos_embed.py
-├── utils/                       # Data loading and utilities
-│   ├── utils.py
-│   ├── dataloader.py
-│   ├── clip_dataloader.py
-│   ├── weibo21_clip_dataloader.py
-│   └── finefake_dataloader.py
-├── data/                        # Weibo dataset (requires manual download)
-│   ├── train_clip_loader.pkl
+```text
+├── CNN_architectures/
+├── model/
+├── pretrained_model/
+├── util/
+├── utils/
+├── data/
 │   ├── train_loader.pkl
-│   └── train_origin.csv
-├── Weibo_21/                    # Weibo21 dataset (requires application)
 │   ├── train_clip_loader.pkl
+│   ├── train_origin.csv
+│   └── ...
+├── Weibo_21/
 │   ├── train_loader.pkl
-│   └── train_datasets.xlsx
-├── pretrained_model/            # Pre-trained models directory
-│   └── chinese_roberta_wwm_base_ext_pytorch/
-├── main.py                      # Training entry point
-├── run.py                       # Run script
-├── models_mae.py                # MAE model implementation
-├── data_pre.py                  # Weibo data preprocessing
-├── clip_data_pre.py             # Weibo CLIP data preprocessing
-├── weibo21_data_pre.py          # Weibo21 data preprocessing
-├── weibo21_clip_data_pre.py     # Weibo21 CLIP data preprocessing
-├── requirements.txt             # Dependencies list
-└── README.md                    # Documentation
+│   ├── train_clip_loader.pkl
+│   ├── train_datasets.xlsx
+│   └── ...
+├── clip_data_pre.py
+├── data_pre.py
+├── main.py
+├── models_mae.py
+├── run.py
+├── weibo21_generate_pkl.py
+├── weibo21_generate_clip_pkl.py
+└── requirements.txt
 ```
 
 ## Data Preparation
 
-### 1. Data Acquisition
+### Datasets
 
-#### Weibo Dataset
-For the Weibo dataset, we follow the work from[(Tong et al.， 2024)]( https://github.com/yutchina/MMDFND)
+- Weibo data should be placed in `./data`.
+- Weibo21 data should be placed in `./Weibo_21`.
 
+The current code expects the following split files:
 
-#### Weibo21 Dataset
-For the Weibo21 dataset, we follow the work from [(Ying et al.， 2023)](https://github.com/yingqichao/fnd-bootstrap). You should send an email to Dr. [Qiong Nan](mailto:nanqiong19z@ict.ac.cn) to get the complete multimodal multi-domain dataset Weibo21.
+- Weibo: `train_origin.csv`, `val_origin.csv`, `test_origin.csv`
+- Weibo21: `train_datasets.xlsx`, `val_datasets.xlsx`, `test_datasets.xlsx`
 
-### 2. Data Storage
+### Preprocessing
 
-- Place the processed Weibo data in the `./data` directory
-- Place the Weibo21 data in the `./Weibo_21` directory
+Use the preprocessing scripts to generate cached loader files before training:
 
-### 3. Data Preprocessing
+- `data_pre.py`
+- `clip_data_pre.py`
+- `weibo21_generate_pkl.py`
+- `weibo21_generate_clip_pkl.py`
 
-Execute data preprocessing before training to accelerate data loading:
-```bash
-# Weibo data preprocessing
-python data_pre.py
-python clip_data_pre.py
+These scripts create `*_loader.pkl` and `*_clip_loader.pkl` files to speed up data loading.
 
-# Weibo21 data preprocessing
-python weibo21_generate_pkl.py
-python weibo21_generate_clip_pkl.py
-```
+### Dataset Notes
 
-## Pre-trained Models
+- Weibo21 follows the dataset setting used by Ying et al. (2023).
+- Weibo follows the dataset setting used by Tong et al. (2024), with domain labels already included in the processed data.
 
-### 1. RoBERTa Chinese Pre-trained Model
+If you use the released processed Weibo data, you can skip the raw data preparation stage.
 
-Download the pretrained Roberta model from [Roberta](https://drive.google.com/drive/folders/1y2k22iMG1i1f302NLf-bj7UEe9zwTwLR?usp=sharing) and move all files into the `./pretrained_model` directory.
+## Pretrained Models
 
-### 2. MAE Pre-trained Model
-Download the pretrained MAE model from ["Masked Autoencoders： A PyTorch Implementation"](https://github.com/facebookresearch/mae) and move all files into the root directory.
-### 3. CLIP Chinese Pre-trained Model
-Download the pretrained CLIP model from ["Chinese-CLIP"](https://github.com/OFA-Sys/Chinese-CLIP) and move all files into the root directory.
+Place the pretrained resources in the paths expected by the code:
+
+- Roberta / Chinese-Roberta: `./pretrained_model/chinese_roberta_wwm_base_ext_pytorch/`
+- Roberta vocabulary: `./pretrained_model/chinese_roberta_wwm_base_ext_pytorch/vocab.txt`
+- MAE: place the pretrained MAE files in the project root or the path referenced by the model code
+- Chinese-CLIP: place the pretrained CLIP files in the project root or the path referenced by the model code
 
 ## Training
 
-### Basic Training Command
+The main training entry is `main.py`.
+
+### Weibo
 
 ```bash
-python main.py
+python main.py --dataset weibo --root_path ./data/
 ```
+
+### Weibo21
+
+```bash
+python main.py --dataset weibo21 --root_path ./Weibo_21/
+```
+
+### Common Arguments
+
+- `--model_name`: model name, default is `QMMFND`
+- `--dataset`: `weibo` or `weibo21`
+- `--epoch`: training epochs, default `50`
+- `--batchsize`: batch size, default `64`
+- `--gpu`: GPU id, default `1`
+- `--early_stop`: early stopping patience, default `5`
+- `--max_len`: maximum token length, default `197`
+
+Example:
+
+```bash
+python main.py --dataset weibo --gpu 0 --batchsize 32 --epoch 50
+```
+
+## Model Notes
+
+The `model/` directory contains the QAM/QIF variants used in the paper, including:
+
+- `MMDFND+QAM.py`
+- `MMDFND+QIF.py`
+- `m3FEND+QAM.py`
+- `m3FEND+QIF.py`
+- `mdfend+QAM.py`
+- `mdfend+QIF.py`
+- `eddfn+QAM.py`
+- `eddfn+QIF.py`
+- `DAMMDFND+QAM.py`
+- `DAMMDFND+QIF.py`
+
+The current training pipeline loads the trainer according to the `model_name` argument in `run.py`.
+
+## Citation
+
+If you use this repository in your research, please cite the corresponding QPnP-MMFND paper.
+
+

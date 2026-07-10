@@ -1,13 +1,3 @@
-"""一量子态构建+相位信息保持（可选）+
-二双量子态融合，量子叠加：模拟量子干涉，加干涉项增强图文关联
-+量子相似度（这里叫：保真度和熵）
-+！！错误形式-冯・诺依曼熵是 “基于测量概率、量化量子态不确定性的工具”-概率分布落到具体状态；
-三图文特征生成融合特征的小测试
-
-CLIP特征量子态编码器 - 严格遵循波函数定义
-将CLIP图文特征编码为复数量子态 ψ = A·e^(iθ)
-振幅和相位均保留CLIP语义信息，支持正负值
-"""
 
 import torch
 import torch.nn as nn
@@ -109,17 +99,6 @@ class CLIPQuantumEncoder(nn.Module):
 
 ##≠2两个纯态融合
 class DualCLIPQuantumFusion(nn.Module):
-    """
-    双路CLIP量子态融合模块
-    分别将CLIP图像和文本特征编码为量子态，然后融合
-    
-    设计思路:
-    1. 图像量子态: ψ_img = A_img·e^(iθ_img)
-    2. 文本量子态: ψ_txt = A_txt·e^(iθ_txt)
-    3. 量子态融合: ψ_fused = Fusion(ψ_img, ψ_txt)
-    4. 相位相干性: coherence = ⟨cos(θ_img - θ_txt)⟩
-    """
-    
     def __init__(self, clip_dim=512, output_dim=320, fusion_type='concat'):
         super(DualCLIPQuantumFusion, self).__init__()
         
@@ -248,12 +227,6 @@ class DualCLIPQuantumFusion(nn.Module):
 
 # ============ CLIP量子干涉融合模块 ============
 class CLIPQuantumInterferenceFusion(nn.Module):
-    """
-    CLIP特征的量子干涉融合模块
-    
-    处理已对齐的CLIP图文特征，通过量子干涉增强融合效果
-    适用于全局特征(如CLIP输出的 [batch, 512])
-    """
     def __init__(self, clip_dim=512, fusion_dim=320, dropout=0.1):
         super().__init__()
         self.clip_dim = clip_dim
@@ -334,18 +307,6 @@ class CLIPQuantumInterferenceFusion(nn.Module):
 #3计算量子相似度
 
 def compute_quantum_fidelity(amp1, phase1, amp2, phase2):
-    """
-    计算两个量子态的保真度 F = |⟨ψ1|ψ2⟩|²
-    
-    Args:
-        amp1: [batch, dim] 量子态1的振幅
-        phase1: [batch, dim] 量子态1的相位
-        amp2: [batch, dim] 量子态2的振幅
-        phase2: [batch, dim] 量子态2的相位
-        
-    Returns:
-        fidelity: [batch] 保真度 ∈ [0, 1]
-    """
     # 重构复数量子态
     psi1_real = amp1 * torch.cos(phase1)
     psi1_imag = amp1 * torch.sin(phase1)
@@ -365,15 +326,7 @@ def compute_quantum_fidelity(amp1, phase1, amp2, phase2):
 
 #4冯诺依曼熵
 def compute_von_neumann_entropy(amplitude):
-    """
-    计算量子态的冯·诺依曼熵 S = -Σ p_i·log(p_i)
-    
-    Args:
-        amplitude: [batch, dim] 量子态振幅
-        
-    Returns:
-        entropy: [batch] 冯·诺依曼熵
-    """
+
     # 概率分布 p_i = |ψ_i|²
     probability = amplitude ** 2
     probability = probability / (probability.sum(dim=-1, keepdim=True) + 1e-8)
@@ -383,80 +336,3 @@ def compute_von_neumann_entropy(amplitude):
     
     return entropy
 
-
-# if __name__ == "__main__":
-#     # ========== 测试代码 ==========
-#     print("=" * 70)
-#     print("测试CLIP特征量子态编码器")
-#     print("=" * 70)
-    
-#     # 1. 测试单路编码器
-#     print("\n【测试1】单路CLIP量子态编码器")
-#     print("-" * 70)
-    
-#     encoder = CLIPQuantumEncoder(input_dim=512, output_dim=320)
-#     clip_feature = torch.randn(8, 512)  # 模拟CLIP特征
-    
-#     quantum_state, amplitude, phase = encoder(clip_feature)
-    
-#     print(f"✓ 输入CLIP特征: {clip_feature.shape}")
-#     print(f"✓ 量子态输出: {quantum_state.shape}")
-#     print(f"✓ 振幅范围: [{amplitude.min():.4f}, {amplitude.max():.4f}] (应在 [-1, 1])")
-#     print(f"✓ 相位范围: [{phase.min():.4f}, {phase.max():.4f}] (应在 [-π, π])")
-    
-#     # 验证正负分布
-#     positive_ratio = (amplitude > 0).float().mean()
-#     negative_ratio = (amplitude < 0).float().mean()
-#     print(f"✓ 正振幅占比: {positive_ratio:.2%}, 负振幅占比: {negative_ratio:.2%}")
-    
-#     # 验证波函数性质
-#     real_part = amplitude * torch.cos(phase)
-#     imag_part = amplitude * torch.sin(phase)
-#     magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
-#     print(f"✓ |ψ| = √(real² + imag²): {magnitude[0, :5]}  (应≈振幅)")
-#     print(f"✓ A[0,:5]: {amplitude[0, :5]}")
-    
-#     # 2. 测试双路融合
-#     print(f"\n【测试2】双路CLIP量子态融合")
-#     print("-" * 70)
-    
-#     fusion_module = DualCLIPQuantumFusion(
-#         clip_dim=512, 
-#         output_dim=320, 
-#         fusion_type='concat'
-#     )
-    
-#     clip_image = torch.randn(8, 512)
-#     clip_text = torch.randn(8, 512)
-    
-#     fused_state, img_amp, txt_amp, coherence = fusion_module(clip_image, clip_text)
-    
-#     print(f"✓ CLIP图像特征: {clip_image.shape}")
-#     print(f"✓ CLIP文本特征: {clip_text.shape}")
-#     print(f"✓ 融合量子态: {fused_state.shape}")
-#     print(f"✓ 相位相干性: {coherence[0]:.4f} ∈ [0, 1]")
-#     print(f"✓ 图像振幅范围: [{img_amp.min():.4f}, {img_amp.max():.4f}]")
-#     print(f"✓ 文本振幅范围: [{txt_amp.min():.4f}, {txt_amp.max():.4f}]")
-    
-#     # 3. 测试量子保真度
-#     print(f"\n【测试3】量子保真度计算")
-#     print("-" * 70)
-    
-#     _, amp2, phase2 = encoder(clip_feature + torch.randn(8, 512) * 0.1)
-#     fidelity = compute_quantum_fidelity(amplitude, phase, amp2, phase2)
-    
-#     print(f"✓ 量子保真度: {fidelity[0]:.4f} ∈ [0, 1]")
-#     print(f"✓ 平均保真度: {fidelity.mean():.4f}")
-    
-#     # 4. 测试冯·诺依曼熵
-#     print(f"\n【测试4】冯·诺依曼熵")
-#     print("-" * 70)
-    
-#     entropy = compute_von_neumann_entropy(amplitude)
-#     print(f"✓ 冯·诺依曼熵: {entropy[0]:.4f}")
-#     print(f"✓ 平均熵: {entropy.mean():.4f}")
-#     print(f"✓ 最大可能熵: {math.log(320):.4f} (均匀分布)")
-    
-#     print(f"\n{'=' * 70}")
-#     print("✓ 所有测试通过！量子态编码器工作正常")
-#     print("=" * 70)

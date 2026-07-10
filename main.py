@@ -1,12 +1,9 @@
 # -*-codeing = utf-8 -*-
-# @Time : 2023-12-1215:43
-# @Author : 童宇
-# @File : main.py
-# @software :
+# Quantum-inspired Multimodal Multi-domain Fake News Detection
 import os
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', default='ganshe_enhance2')
+parser.add_argument('--model_name', default='xx')
 parser.add_argument('--dataset', default='weibo')#weibo21 %% weibo
 #parser.add_argument('--model_name', default='domain_ple6')
 parser.add_argument('--epoch', type=int, default=50)
